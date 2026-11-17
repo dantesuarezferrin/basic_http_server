@@ -71,10 +71,10 @@ int main(void){
 				perror("read");
 				close(cfd);
 			}else{
-				
+				/*		-----Actualizar----
 				req_buff[req_size] = '\0';
 				t_request request;
-
+				
 				if(req !=NULL && req[0]!=NULL && req[1]!=NULL){
 					if( strcmp(req[1],"/") != 0 && strncmp(req[1], "/echo/", 6)!=0){
 						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
@@ -97,6 +97,7 @@ int main(void){
 							strcpy(reply, "HTTP/1.1 200 OK\r\n\r\n");
 						}
 					}
+					*/
 					if(write(cfd, reply, strlen(reply)) < 0)
 						perror("write");
 				}
