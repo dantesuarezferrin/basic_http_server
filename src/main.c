@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "../includes/parser.h"
 #include <sys/socket.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -73,8 +73,8 @@ int main(void){
 			}else{
 				
 				req_buff[req_size] = '\0';
-				req = parseLine(req_buff);
-				
+				t_request request;
+
 				if(req !=NULL && req[0]!=NULL && req[1]!=NULL){
 					if( strcmp(req[1],"/") != 0 && strncmp(req[1], "/echo/", 6)!=0){
 						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
