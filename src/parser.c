@@ -1,7 +1,8 @@
 #include "../includes/parser.h"
 #include <string.h>
 #include <stdlib.h>
-
+#include <strings.h>
+#include <stdio.h>
 
 int parse_request_line(char *line, t_request *request)
 {
@@ -97,6 +98,23 @@ int parse_header(char *header, t_request *request)
     return (0);
 }
 
+t_header *get_header(char *header, t_request *request){
+	if( !header || !request )
+		return NULL;
+
+	t_header *header_list = request->headers;
+
+	if( !header_list )
+		return NULL;
+
+	while( header_list &&  strcasecmp(header, header_list->name) != 0){
+		header_list = header_list->next;
+	}
+	
+	return header_list;
+
+}
+
 
 int parse_body(char *body, t_request *request)
 {
@@ -146,7 +164,9 @@ int parse_request(char *buff, t_request *request)
 
     if (parse_body(body, request) < 0)
     {
-        return (-1);
+			free_headers(request->headers);
+    	request->headers = NULL;
+      return (-1);
     }
 
     return (0);

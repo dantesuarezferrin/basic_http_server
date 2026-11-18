@@ -20,6 +20,7 @@ typedef struct s_request{
 int parse_request_line(char *line, t_request *request);
 void free_headers(t_header *headers);
 int parse_header(char *header, t_request *request);
+t_header *get_header(char *header, t_request *request);
 int parse_body(char *body, t_request *request);
 int parse_request(char *buff, t_request *request);
 

@@ -11,8 +11,17 @@
 #define BACKLOG 64
 
 
-int main(void){
+int main(int argc, char *argv[]){
+	if(argc < 1 || argc == 2 || argc > 3)
+		return -1;
+
+	char *arg_dir=NULL;
 	
+	if( argc != 1 ){
+		if( strcmp("--directory", argv[1]) )
+			return -1;
+    arg_dir = argv[2];
+	}
 
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0); 
 	if (sockfd < 0) {
@@ -79,28 +88,92 @@ int main(void){
 					continue;
 				}
 
-				if( strcmp(request.path,"/") != 0 && strncmp(request.path, "/echo/", 6) != 0)
-						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
-				else{
 
-					if( strcmp(request.path, "/") == 0)
-						strcpy(reply, "HTTP/1.1 200 OK\r\n\r\n");
-					else{
-						char *echo = strstr(request.path, "/echo/")+strlen("/echo/");
-						int echo_size = strlen(echo);
+				if( strcmp(request.path, "/") == 0)
+					strcpy(reply, "HTTP/1.1 200 OK\r\n\r\n");
+				else if( strncmp(request.path, "/echo/", 6) == 0 ){
+					char *echo = strstr(request.path, "/echo/")+strlen("/echo/");
+					int echo_size = strlen(echo);
+					snprintf(reply, 4096,
+						"HTTP/1.1 200 OK\r\n"
+						"Content-Type: text/plain\r\n"
+						"Content-Length: %d\r\n"
+						"Connection: close\r\n"
+						"\r\n"
+						"%s"
+						, echo_size, echo
+					);
+				}
+				else if( strcmp("/user-agent", request.path) == 0 ){
+					
+					t_header *header = get_header("user-agent", &request);
+					if( header ){
 						snprintf(reply, 4096,
 							"HTTP/1.1 200 OK\r\n"
 							"Content-Type: text/plain\r\n"
-							"Content-Length: %d\r\n"
+							"Content-Length: %zu\r\n"
 							"Connection: close\r\n"
 							"\r\n"
 							"%s"
-							, echo_size, echo
+							, strlen(header->value), header->value
 						);
-						
+					}
+				}
+				else if( strncmp("/files/", request.path, 7) == 0 ){
+
+					if( !arg_dir || strstr("..", request.path)!=NULL ){
+						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+					}
+					else{
+
+						char file_dir[1024];
+						snprintf(file_dir, sizeof(file_dir), "%s/%s", arg_dir, request.path + 7);
+						FILE *file = fopen(file_dir, "r");
+						long file_size = -1;
+						if(file==NULL){
+							strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+						}
+						else{
+							fseek(file , 0, SEEK_END);
+							file_size = ftell(file);
+							char *file_content=NULL;
+							if (file_size >= 0 ) {
+								file_content = (char *)malloc(file_size+1);
+							}
+							if( file_size < 0){
+								strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+							}
+							else{
+								rewind(file);
+								size_t bytes_read = fread(file_content, 1, file_size, file) ;
+								if( bytes_read != (size_t)file_size){
+									strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+								}
+								else{
+									file_content[file_size] = '\0';
+									snprintf(reply, 4096,
+										"HTTP/1.1 200 OK\r\n"
+										"Content-Type: application/octec-stream\r\n"
+										"Content-Length: %ld\r\n"
+										"Connection: close\r\n"
+										"\r\n"
+										"%s"
+										, file_size, file_content
+									);
+								}
+							}
+
+							free(file_content);
+							fclose(file);
+						}
 					}
 
+
 				}
+				else{
+					strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+				}
+				
 				
 				if(write(cfd, reply, strlen(reply)) < 0)
 					perror("write");
