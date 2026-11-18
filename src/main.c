@@ -71,36 +71,39 @@ int main(void){
 				perror("read");
 				close(cfd);
 			}else{
-				/*		-----Actualizar----
-				req_buff[req_size] = '\0';
 				t_request request;
 				
-				if(req !=NULL && req[0]!=NULL && req[1]!=NULL){
-					if( strcmp(req[1],"/") != 0 && strncmp(req[1], "/echo/", 6)!=0){
-						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
-					}
-					else{
-						
-						if( strcmp(req[1],"/") !=0 ){
-							int echo_size = strlen(req[1]) - strlen("/echo/");
-							snprintf(reply, 4096,
-									"HTTP/1.1 200 OK\r\n"
-									"Content-Type: text/plain\r\n"
-									"Content-Length: %d\r\n"
-									"Connection: close\r\n"
-									"\r\n"
-									"%s"
-									, echo_size, req[1]+6 );
-							
-						}
-						else{
-							strcpy(reply, "HTTP/1.1 200 OK\r\n\r\n");
-						}
-					}
-					*/
-					if(write(cfd, reply, strlen(reply)) < 0)
-						perror("write");
+				if(parse_request(req_buff, &request) != 0){
+					perror("parse request");
+					close(cfd);
 				}
+
+				if( strcmp(request.path,"/") != 0 && strncmp(request.path, "/echo/", 6) != 0)
+						strcpy(reply, "HTTP/1.1 404 Not Found\r\n\r\n");
+				else{
+
+					if( strcmp(request.path, "/") == 0)
+						strcpy(reply, "HTTP/1.1 200 OK\r\n\r\n");
+					else{
+						char *echo = strstr(request.path, "/echo/")+strlen("/echo/");
+						int echo_size = strlen(echo);
+						snprintf(reply, 4096,
+							"HTTP/1.1 200 OK\r\n"
+							"Content-Type: text/plain\r\n"
+							"Content-Length: %d\r\n"
+							"Connection: close\r\n"
+							"\r\n"
+							"%s"
+							, echo_size, echo
+						);
+						
+					}
+
+				}
+				
+				if(write(cfd, reply, strlen(reply)) < 0)
+					perror("write");
+				
 				close(cfd);
 				free(req);
 			}

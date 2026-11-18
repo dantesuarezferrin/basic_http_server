@@ -146,8 +146,6 @@ int parse_request(char *buff, t_request *request)
 
     if (parse_body(body, request) < 0)
     {
-        free_headers(request->headers);
-        request->headers = NULL;
         return (-1);
     }
 
