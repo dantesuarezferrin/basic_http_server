@@ -54,8 +54,6 @@ int main(void){
 	
 	ssize_t req_size;
 	char req_buff[4096];
-
-	char **req=NULL;
 	
 	while (1) {
 		peer_addr_size = sizeof(peer_addr);
