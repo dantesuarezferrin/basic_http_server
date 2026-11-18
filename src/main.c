@@ -71,11 +71,14 @@ int main(void){
 				perror("read");
 				close(cfd);
 			}else{
+
+				req_buff[req_size] = '\0';
 				t_request request;
 				
 				if(parse_request(req_buff, &request) != 0){
 					perror("parse request");
 					close(cfd);
+					continue;
 				}
 
 				if( strcmp(request.path,"/") != 0 && strncmp(request.path, "/echo/", 6) != 0)
@@ -104,8 +107,8 @@ int main(void){
 				if(write(cfd, reply, strlen(reply)) < 0)
 					perror("write");
 				
+				free_headers(request.headers);
 				close(cfd);
-				free(req);
 			}
 		}
 	}
