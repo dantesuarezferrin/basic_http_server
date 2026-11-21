@@ -74,7 +74,7 @@ int handle_connection(int cfd, const char *server_dir){
 			handle_file_get(&request, reply, server_dir, cfd);
 			break;
 		case 4:
-			handle_file_post(&request, reply, server_dir);
+			handle_file_post(cfd, req_buff, req_size, &request, reply, server_dir );
 			break;
 
 	}
